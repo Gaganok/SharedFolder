@@ -1,5 +1,7 @@
 package shared.core;
 
+import java.nio.file.Paths;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -19,8 +21,9 @@ public class Main extends Application{
 	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		this.primaryStage = primaryStage;
-		Parent root = FXMLLoader.load(getClass().getResource("view.fxml"));
+		Main.primaryStage = primaryStage;
+		Parent root = FXMLLoader.load(Paths.get(System.getProperty("user.dir") + "/src/resourses/fxml/view.fxml")
+				.toUri().toURL());
 		
 		primaryStage.setScene(new Scene(root, 1280, 800));
 		primaryStage.setResizable(false);

@@ -1,23 +1,59 @@
 package shared.network;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.File;
 
+import javafx.stage.DirectoryChooser;
+import shared.core.Main;
 import shared.model.FileService;
 
 public class Server implements FileService{
 	
-	private static String sharedFolderPath = System.getProperty("user.dir") + "/src/resourses/shared";
+	private String sharedFolderPath = System.getProperty("user.dir") + "/src/resourses/shared";
+	private File[] currentFiles;
 	private static Server instance;
 	
 	
-	private Server(){System.out.println("Server Initialized");}
+	private Server(){
+			File file = new File(sharedFolderPath);
+			if(!file.exists())
+				file.mkdirs();
+			
+			System.out.println("Server Initialized");
+	}
 	
 	public static Server getInstance() {
 		if(instance == null)
 			instance = new Server();
 		
 		return instance;
+	}
+	
+	private File[] getFiles() {
+		
+		return new File(getSharedPath())
+				.listFiles((f, n) -> {return n.endsWith(".mp3");});
+	}
+	
+	public String[] getFileNames() {
+		currentFiles = getFiles();
+		
+		String[] names = new String[currentFiles.length];
+		for(int i = 0; i < currentFiles.length; i++)
+			names[i] = currentFiles[i].getName();
+		
+		return names;
+	}
+	
+	public String selectFolder() {
+		DirectoryChooser dirCh = new DirectoryChooser();
+		dirCh.setInitialDirectory(new File(System.getProperty("user.dir")));
+
+		File directory = dirCh.showDialog(Main.getStage());
+
+		if(directory != null) 
+			setSharedPath(directory.getAbsolutePath());
+			
+		return sharedFolderPath;
 	}
 	
 	@Override
@@ -34,8 +70,23 @@ public class Server implements FileService{
 
 	@Override
 	public boolean isModified() {
-		// TODO Auto-generated method stub
-		return false;
+		File[] newFiles = getFiles();
+		if(newFiles.length == currentFiles.length) {
+			for(int i = 0; i < newFiles.length; i++) {
+				boolean ok = false;
+				for(int j = 0; j < currentFiles.length; j++) {
+					if(newFiles[i].getName().equals(currentFiles[j].getName()) && 
+							newFiles[i].lastModified() == currentFiles[j].lastModified()) {
+						ok = true;
+						break;
+					}
+				}
+				if(!ok)
+					return true; 
+			}
+			return false;
+		}
+		return true;
 	}
 
 	@Override
@@ -50,11 +101,11 @@ public class Server implements FileService{
 		return null;
 	}
 	
-	public static String getSharedPath() {
+	public String getSharedPath() {
 		return sharedFolderPath;
 	}
 	
-	public static void setSharedPath(String path) {
+	public void setSharedPath(String path) {
 		sharedFolderPath = path;
 	}
 
